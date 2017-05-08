@@ -18,11 +18,11 @@ call switch_to_pm
 jmp $
 
 ; includes
-%include "gdt.asm"
-%include "disk.asm"
-%include "stdio16.asm"
-%include "stdio.asm"
-%include "switch_pm.asm"
+%include "boot/gdt.asm"
+%include "boot/disk.asm"
+%include "boot/stdio16.asm"
+%include "boot/stdio.asm"
+%include "boot/switch_pm.asm"
 
 [bits 32]
 start:

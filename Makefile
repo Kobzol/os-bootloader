@@ -1,22 +1,46 @@
+# $^ is  substituted  with  all of the  target ’s dependancy  files
+# $< is the  first  dependancy  and $@ is the  target  file
+
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h)
+
+OBJ = ${C_SOURCES:.c=.o}
+
+CFLAGS = -g -O0 -m32 -ffreestanding
+
 all: os-image
 
-boot.bin: boot.asm
-	nasm $< -f bin -o $@
+run: os-image
+	qemu-system-x86_64 -drive format=raw,file=os-image
+	
+debug: os-image kernel/kernel.elf
+	qemu-system-x86_64 -s -drive format=raw,file=os-image &
+	gdb -ex "target remote localhost:1234" -ex "symbol-file kernel/kernel.elf"
+	
 
-# $^ is  substituted  with  all of the  target ’s dependancy  files
-kernel.bin: kernel_entry.o kernel.o
-	ld -m elf_i386 -o kernel.bin -Ttext 0x1000 $^ --oformat binary
-
-# $< is the  first  dependancy  and $@ is the  target  file
-kernel.o: kernel.c
-	gcc -O0 -m32 -ffreestanding -c $< -o $@
-
-# Same as the  above  rule.
-kernel_entry.o: kernel_entry.asm
-	nasm $< -f elf32 -o $@
-
-os-image: boot.bin kernel.bin
+# OS image
+os-image: boot/boot.bin kernel/kernel.bin
 	cat $^ > $@
 
+# kernel for debug
+kernel/kernel.elf: kernel/kernel_entry.o ${OBJ}
+	ld -m elf_i386 -o $@ -Ttext 0x1000 $^
+
+# kernel link
+kernel/kernel.bin: kernel/kernel_entry.o ${OBJ}
+	ld -m elf_i386 -o $@ -Ttext 0x1000 $^ --oformat binary
+
+%.o : %.c ${HEADERS}
+	gcc ${CFLAGS} -c $< -o $@
+
+# boot
+%.bin: %.asm
+	nasm $< -f bin -o $@
+
+# kernel entry
+%.o: %.asm
+	nasm $< -f elf32 -o $@
+
 clean:
-	rm *.o *.bin os-image
+	rm -rf os-image
+	rm -rf kernel/*.o kernel/*.bin kernel/*.elf boot/*.bin drivers/*.o
