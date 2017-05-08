@@ -15,7 +15,7 @@ run: os-image
 	${QEMU} -drive format=raw,file=os-image
 	
 debug: os-image kernel/kernel.elf
-	${QEMU} -d guest_errors,int -s -drive format=raw,file=os-image &
+	${QEMU} -d guest_errors,int -s -S -drive format=raw,file=os-image &
 	gdb -ex "target remote localhost:1234" -ex "symbol-file kernel/kernel.elf"
 	
 
