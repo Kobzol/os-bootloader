@@ -1,13 +1,22 @@
-void test()
+#include "low_level.h"
+#include "../cpu/isr.h"
+
+#include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
+
+static void init()
 {
-	char* vidmem = (char*) 0xB8000;
-	*vidmem++ = 'X';
-	*vidmem++ = 0x0f;
-	*vidmem++ = 'Y';
-	*vidmem++ = 0x0f;
+	// screen
+	set_cursor(0);
+	
+	// interrupts
+	isr_install();
+	asm volatile("sti");
 }
 
 void main()
 {
-	test();
+	init();
+	//init_timer(50);
+	init_keyboard();
 }

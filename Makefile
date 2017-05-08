@@ -1,20 +1,21 @@
 # $^ is  substituted  with  all of the  target ’s dependancy  files
 # $< is the  first  dependancy  and $@ is the  target  file
 
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
-HEADERS = $(wildcard kernel/*.h drivers/*.h)
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c cpu/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h cpu/*.h)
+QEMU = qemu-system-i386
 
-OBJ = ${C_SOURCES:.c=.o}
+OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 
-CFLAGS = -g -O0 -m32 -ffreestanding
+CFLAGS = -g -O0 -m32 -ffreestanding -Wall -Wextra -pedantic
 
 all: os-image
 
 run: os-image
-	qemu-system-x86_64 -drive format=raw,file=os-image
+	${QEMU} -drive format=raw,file=os-image
 	
 debug: os-image kernel/kernel.elf
-	qemu-system-x86_64 -s -drive format=raw,file=os-image &
+	${QEMU} -d guest_errors,int -s -drive format=raw,file=os-image &
 	gdb -ex "target remote localhost:1234" -ex "symbol-file kernel/kernel.elf"
 	
 
@@ -43,4 +44,4 @@ kernel/kernel.bin: kernel/kernel_entry.o ${OBJ}
 
 clean:
 	rm -rf os-image
-	rm -rf kernel/*.o kernel/*.bin kernel/*.elf boot/*.bin drivers/*.o
+	rm -rf kernel/*.o kernel/*.bin kernel/*.elf boot/*.bin drivers/*.o cpu/*.o

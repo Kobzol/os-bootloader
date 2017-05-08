@@ -9,7 +9,7 @@ mov sp, bp
 mov [BOOT_DRIVE], dl
 
 push KERNEL_OFFSET
-mov ah, 1
+mov ah, 17	; update as program grows
 mov al, [BOOT_DRIVE]
 push ax
 call disk_load_rm
